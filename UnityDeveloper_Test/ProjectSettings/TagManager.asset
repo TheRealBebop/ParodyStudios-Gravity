@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - CinemachineTarget
+  - Forward Wall
+  - Back Wall
+  - Right Wall
+  - Left Wall
+  - Up Wall
+  - Ground
   layers:
   - Default
   - TransparentFX
