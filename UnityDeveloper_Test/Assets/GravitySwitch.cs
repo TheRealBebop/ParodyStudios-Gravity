@@ -25,7 +25,8 @@ public class GravitySwitch : MonoBehaviour
     {
         if (Input.GetButtonDown("Left"))
         {
-            actualLeft = gameObject.transform.InverseTransformDirection(Vector3.left);
+            
+            //actualLeft = gameObject.transform.InverseTransformDirection(Vector3.left);
             CastLeft();
         }
         if (Input.GetButtonDown("Right"))
@@ -47,6 +48,7 @@ public class GravitySwitch : MonoBehaviour
 
     public void CastLeft()
     {
+        actualLeft = -transform.right;
         Debug.DrawRay(transform.position, actualLeft * rayRange);
 
         RaycastHit leftHit;
@@ -65,9 +67,11 @@ public class GravitySwitch : MonoBehaviour
     }
     public void DrawRight()
     {
+        actualRight = transform.right;
+        Debug.DrawRay(transform.position, actualRight * rayRange);
+
         RaycastHit rightHit;
         Ray rightRay = new Ray(transform.position, actualRight);
-        Debug.DrawRay(transform.position, actualRight * rayRange);
 
         if (controller.IsGrounded())
         {
@@ -82,9 +86,11 @@ public class GravitySwitch : MonoBehaviour
     }
     public void DrawForward()
     {
+        actualForward = transform.forward;
+        Debug.DrawRay(transform.position, actualForward * rayRange);
+
         RaycastHit forwardHit;
         Ray forwardRay = new Ray(transform.position, actualForward);
-        Debug.DrawRay(transform.position, actualForward * rayRange);
 
         if (controller.IsGrounded())
         {
@@ -99,9 +105,11 @@ public class GravitySwitch : MonoBehaviour
     }
     public void DrawBack()
     {
+        actualBack = -transform.forward;
+        Debug.DrawRay(transform.position, actualBack * rayRange);
+
         RaycastHit backHit;
         Ray backRay = new Ray(transform.position, actualBack);
-        Debug.DrawRay(transform.position, actualBack * rayRange);
 
         if (controller.IsGrounded())
         {

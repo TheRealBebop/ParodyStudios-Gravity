@@ -23,10 +23,13 @@ public class PlayerController : MonoBehaviour
     {
         rigidBody = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void FixedUpdate()
     {
+                Debug.Log(transform.up * -1);
         lastPosition = transform.position;
         Vector2 movement = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         Vector3 direction = new Vector3(movement.x, 0, movement.y).normalized;
@@ -36,13 +39,13 @@ public class PlayerController : MonoBehaviour
             //To move player in the direction of the camera
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + camera.eulerAngles.y; // find the angle between player direction and camera direction
            
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, smoothTime); //changes angle from curent angle to target angle;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, smoothTime); //changes angle from current angle to target angle;
             
             transform.rotation = Quaternion.Euler(0f, angle, 0f); //rotate player
             
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward; //find direction to move player forward
             
-            if(grounded == true)
+            //if(grounded == true)
             {
                 controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
                 //animator.SetTrigger("Running");
