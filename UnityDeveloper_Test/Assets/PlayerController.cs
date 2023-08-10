@@ -14,11 +14,16 @@ public class PlayerController : MonoBehaviour
     public Transform camera;
     [SerializeField] Rigidbody rigidBody;
 
-    public float jumpForce = 50f;
-    public bool grounded;
+    //public float jumpForce = 50f;
     public bool jumping;
     float turnSmoothVelocity;
     Vector3 lastPosition;
+
+    public float jumpHeight;
+    public float gravity;
+    public bool grounded;
+    Vector3 velocity;
+
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
@@ -26,9 +31,20 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-
-    void FixedUpdate()
+    private void OnDrawGizmos() //Draw CheckSphere/isGrounded sphere
     {
+        Gizmos.DrawSphere(transform.position, 0.1f);
+    }
+
+    void Update()
+    {
+        IsGrounded();
+        IsMoving();
+       /* if(grounded && velocity.y < 0)
+        {
+            velocity.y = -1;
+        }
+       */
                 Debug.Log(transform.up * -1);
         lastPosition = transform.position;
         Vector2 movement = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
@@ -44,35 +60,23 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, angle, 0f); //rotate player
             
             Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward; //find direction to move player forward
-            
-            //if(grounded == true)
-            {
-                controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
-                //animator.SetTrigger("Running");
-            }
-        }        
-    }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawSphere(transform.position, 0.1f);
-    }
-
-    public void Update()
-    {
-        IsMoving();
-        IsGrounded();
+            controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
+        }       
+        
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             animator.SetBool("Running", false);
-            Jump();
-        }
-    }
 
-    private void Jump()
-    {
-        Debug.Log("Jumping");
-        rigidBody.AddForce(transform.up * jumpForce);
+            velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
+        }
+        if(velocity.y > -20)
+        {
+            velocity.y += (gravity * 10) * Time.deltaTime;
+        }
+
+        controller.Move(velocity * Time.deltaTime);
+
     }
 
     public void IsMoving()
@@ -96,6 +100,7 @@ public class PlayerController : MonoBehaviour
 
     public bool IsGrounded()
     {
+        //grounded = Physics.CheckSphere(transform.position, 0.1f, 1);
         if (grounded == true)
         {
             animator.SetBool("Grounded", true);
