@@ -24,6 +24,9 @@ public class PlayerController : MonoBehaviour
     public bool grounded;
     Vector3 velocity;
 
+    bool isWalkingOnLeftWall;
+
+
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
@@ -31,21 +34,21 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-    private void OnDrawGizmos() //Draw CheckSphere/isGrounded sphere
-    {
-        Gizmos.DrawSphere(transform.position, 0.1f);
-    }
+    //private void OnDrawGizmos() //Draw CheckSphere/isGrounded sphere
+    //{
+      //  Gizmos.DrawSphere(transform.position, 0.1f);
+    //}
 
     void Update()
     {
         IsGrounded();
         IsMoving();
-       /* if(grounded && velocity.y < 0)
-        {
-            velocity.y = -1;
-        }
-       */
-                Debug.Log(transform.up * -1);
+        /* if(grounded && velocity.y < 0)
+         {
+             velocity.y = -1;
+         }
+        */
+
         lastPosition = transform.position;
         Vector2 movement = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
         Vector3 direction = new Vector3(movement.x, 0, movement.y).normalized;
@@ -54,29 +57,47 @@ public class PlayerController : MonoBehaviour
         {
             //To move player in the direction of the camera
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + camera.eulerAngles.y; // find the angle between player direction and camera direction
-           
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, smoothTime); //changes angle from current angle to target angle;
-            
-            transform.rotation = Quaternion.Euler(0f, angle, 0f); //rotate player
-            
-            Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward; //find direction to move player forward
 
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, smoothTime); //changes angle from current angle to target angle;
+
+            transform.rotation = Quaternion.Euler(0f, angle, 0f); //rotate player
+
+            Vector3 moveDirection = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward; //find direction to move player forward
+            //Debug.Log("Move Direction:" + moveDirection);
+
+            if (isWalkingOnLeftWall == true)
+            {
+                moveDirection = transform.up * -1;
+            }
             controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
-        }       
-        
+            //controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
+        }
+        JumpLeft();
+        if(isWalkingOnLeftWall == true)
+        {
+            //SetGravityLeft();
+            //JumpLeft();
+        }
+    }
+
+    private void SetGravityLeft()
+    {
+        velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
+    }
+
+    private void JumpLeft()
+    {
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             animator.SetBool("Running", false);
 
             velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
         }
-        if(velocity.y > -20)
+        if (velocity.y > -20)
         {
             velocity.y += (gravity * 10) * Time.deltaTime;
         }
-
         controller.Move(velocity * Time.deltaTime);
-
     }
 
     public void IsMoving()
@@ -118,6 +139,11 @@ public class PlayerController : MonoBehaviour
         grounded = true;
         jumping = false;
         Debug.Log("Landed");
+        if(collision.collider.tag == "Left Wall")
+        {
+            Debug.Log("This is Left Wall");
+            isWalkingOnLeftWall = true;
+        }
     }
 
     private void OnCollisionExit(Collision collision)

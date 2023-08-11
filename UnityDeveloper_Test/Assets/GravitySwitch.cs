@@ -1,125 +1,133 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class GravitySwitch : MonoBehaviour
 {
-    public float rayRange = 25f;
-    Vector3 actualLeft;
-    Vector3 actualRight;
-    Vector3 actualForward;
-    Vector3 actualBack;
+    [SerializeField] Vector3 goalposition;
+    [SerializeField] Vector3 goalrotation;
+    [SerializeField] private AnimationCurve curve;
+    public float rayRange = 10000000f;
+    Vector3 actualdirection;
+    public bool switchLeft;
+    public bool switchRight;
+    public bool switchForward;
+    public bool switchBack;
+
+    Vector3 gravityVelocity;
+
+    [SerializeField] float speed = 10f;
+    float current = 0f, target = 1f;
 
     PlayerController controller;
+    public CharacterController characterController;
     HoloGravity holo;
+    public PlayerController player;
+    Rigidbody rb;
+
 
     // Start is called before the first frame update
     void Start()
     {
         controller = GetComponent<PlayerController>();
+        characterController = GetComponent<CharacterController>();
         holo = GetComponent<HoloGravity>();
+        player = GetComponent<PlayerController>();
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        //rb.AddForce(new Vector3(-9.81f, 0f, 0f));
+        /*
+        Vector3 flyUp = new Vector3(transform.position.x, -1.65f, transform.position.z);
+
+        current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
+        Debug.Log("Lerp done");
+        if (transform.position == flyUp)
+        {
+            gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
+            characterController.Move(gravityVelocity * Time.deltaTime);
+            Debug.Log("Pushing Left");
+        }
+        */
         if (Input.GetButtonDown("Left"))
         {
-            
-            //actualLeft = gameObject.transform.InverseTransformDirection(Vector3.left);
-            CastLeft();
+            CastRay(-transform.right);
+            if(Input.GetButtonDown("Submit") && switchLeft == true)
+            {
+
+            }
         }
         if (Input.GetButtonDown("Right"))
         {
-            actualRight = gameObject.transform.InverseTransformDirection(Vector3.right);
-            DrawRight();
+            CastRay(transform.right);
         }
         if (Input.GetButtonDown("Forward"))
         {
-            actualForward = gameObject.transform.InverseTransformDirection(Vector3.forward);
-            DrawForward();
+            CastRay(transform.forward);
         }
         if (Input.GetButtonDown("Back"))
         {
-            actualBack = gameObject.transform.InverseTransformDirection(Vector3.back);
-            DrawBack();
+            CastRay(-transform.forward);
         }
     }
 
-    public void CastLeft()
+    public void CastRay(Vector3 direction)
     {
-        actualLeft = -transform.right;
-        Debug.DrawRay(transform.position, actualLeft * rayRange);
+        actualdirection = direction;
+        Debug.DrawRay(transform.position, actualdirection * rayRange);
 
-        RaycastHit leftHit;
-        Ray leftRay = new Ray(transform.position, actualLeft);
+        RaycastHit Hit;
+        Ray ray = new Ray(transform.position, actualdirection);
 
         if(controller.IsGrounded())
         {
-            Physics.Raycast(leftRay, out leftHit, rayRange);
+            Physics.Raycast(ray, out Hit, rayRange);
             {
-                if (leftHit.collider.tag == "Left Wall");
+                if (Hit.collider.tag == "Left Wall")
                 {
-                    Debug.Log("Left Ray cast");
+                    Debug.Log("Left Wall hit");
+                    switchForward = false;
+                    switchBack = false;
+                    switchRight = false;
+                    switchLeft = true;
+                    //play hologram left animation
+                }
+                else if(Hit.collider.tag == "Right Wall")
+                {
+                    Debug.Log("Right Wall hit");
+                }
+                else if (Hit.collider.tag == "Forward Wall")
+                {
+                    Debug.Log("Forward wall hit");
+                }
+                else if (Hit.collider.tag == "Back Wall")
+                {
+                    Debug.Log("Back wall hit");
                 }
             }
         }
     }
-    public void DrawRight()
+    private void PushLeft()
     {
-        actualRight = transform.right;
-        Debug.DrawRay(transform.position, actualRight * rayRange);
+        Vector3 fly = new Vector3(transform.position.x, -1.65f, transform.position.z);
 
-        RaycastHit rightHit;
-        Ray rightRay = new Ray(transform.position, actualRight);
-
-        if (controller.IsGrounded())
+        current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, fly, curve.Evaluate(current));
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
+        Debug.Log("Lerp done");
+        if (transform.position == fly)
         {
-            Physics.Raycast(rightRay, out rightHit, rayRange);
-            {
-                if (rightHit.collider.tag == "Right Wall") ;
-                {
-                    Debug.Log("Right Ray cast");
-                }
-            }
-        }
-    }
-    public void DrawForward()
-    {
-        actualForward = transform.forward;
-        Debug.DrawRay(transform.position, actualForward * rayRange);
-
-        RaycastHit forwardHit;
-        Ray forwardRay = new Ray(transform.position, actualForward);
-
-        if (controller.IsGrounded())
-        {
-            Physics.Raycast(forwardRay, out forwardHit, rayRange);
-            {
-                if (forwardHit.collider.tag == "Forward Wall") ;
-                {
-                    Debug.Log("Forward Ray cast");
-                }
-            }
-        }
-    }
-    public void DrawBack()
-    {
-        actualBack = -transform.forward;
-        Debug.DrawRay(transform.position, actualBack * rayRange);
-
-        RaycastHit backHit;
-        Ray backRay = new Ray(transform.position, actualBack);
-
-        if (controller.IsGrounded())
-        {
-            Physics.Raycast(backRay, out backHit, rayRange);
-            {
-                if (backHit.collider.tag == "Back Wall") ;
-                {
-                    Debug.Log("Back Ray cast");
-                }
-            }
+            gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
+            characterController.Move(gravityVelocity * Time.deltaTime);
+            Debug.Log("Pushing Left");
         }
     }
 }
