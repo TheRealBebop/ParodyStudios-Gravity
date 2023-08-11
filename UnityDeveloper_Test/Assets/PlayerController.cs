@@ -70,9 +70,8 @@ public class PlayerController : MonoBehaviour
                 moveDirection = transform.up * -1;
             }
             controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
-            //controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
         }
-        JumpLeft();
+        Jump();
         if(isWalkingOnLeftWall == true)
         {
             //SetGravityLeft();
@@ -82,10 +81,10 @@ public class PlayerController : MonoBehaviour
 
     private void SetGravityLeft()
     {
-        velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
+        //velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
     }
 
-    private void JumpLeft()
+    private void Jump()
     {
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
@@ -139,11 +138,13 @@ public class PlayerController : MonoBehaviour
         grounded = true;
         jumping = false;
         Debug.Log("Landed");
+        /*
         if(collision.collider.tag == "Left Wall")
         {
             Debug.Log("This is Left Wall");
             isWalkingOnLeftWall = true;
         }
+        */
     }
 
     private void OnCollisionExit(Collision collision)

@@ -13,9 +13,17 @@ public class GravitySwitch : MonoBehaviour
     public float rayRange = 10000000f;
     Vector3 actualdirection;
     public bool switchLeft;
+    public bool enterLeft;
+
     public bool switchRight;
+    public bool enterRight;
+
     public bool switchForward;
+    public bool enterForward;
+
     public bool switchBack;
+    public bool enterBack;
+
 
     Vector3 gravityVelocity;
 
@@ -27,6 +35,7 @@ public class GravitySwitch : MonoBehaviour
     HoloGravity holo;
     public PlayerController player;
     Rigidbody rb;
+    [SerializeField] GravitySwitchEnvironment env;
 
 
     // Start is called before the first frame update
@@ -37,33 +46,32 @@ public class GravitySwitch : MonoBehaviour
         holo = GetComponent<HoloGravity>();
         player = GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody>();
+        //env = GetComponent<GravitySwitchEnvironment>();
     }
 
     // Update is called once per frame
     void Update()
-    {
-        //rb.AddForce(new Vector3(-9.81f, 0f, 0f));
-        /*
-        Vector3 flyUp = new Vector3(transform.position.x, -1.65f, transform.position.z);
+    {       
+            /*
+            if(Input.GetButtonDown("Submit") && switchLeft == true)
+            {
+                Vector3 flyUp = new Vector3(transform.position.x, -1.65f, transform.position.z);
 
-        current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
-        Debug.Log("Lerp done");
-        if (transform.position == flyUp)
-        {
-            gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
-            characterController.Move(gravityVelocity * Time.deltaTime);
-            Debug.Log("Pushing Left");
-        }
-        */
+                current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
+                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
+                Debug.Log("Lerp done");
+                if (transform.position == flyUp)
+                {
+                    gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
+                    characterController.Move(gravityVelocity * Time.deltaTime);
+                    Debug.Log("Pushing Left");
+                }
+            }
+            */
         if (Input.GetButtonDown("Left"))
         {
             CastRay(-transform.right);
-            if(Input.GetButtonDown("Submit") && switchLeft == true)
-            {
-
-            }
         }
         if (Input.GetButtonDown("Right"))
         {
@@ -76,6 +84,15 @@ public class GravitySwitch : MonoBehaviour
         if (Input.GetButtonDown("Back"))
         {
             CastRay(-transform.forward);
+        }
+        if (Input.GetButtonDown("Submit"))
+        {
+            if(switchLeft == true)
+            {
+                enterLeft = true;
+                Debug.Log("pass to env left rotate");
+                env.RotateLeft();
+            }
         }
     }
 
@@ -103,14 +120,29 @@ public class GravitySwitch : MonoBehaviour
                 else if(Hit.collider.tag == "Right Wall")
                 {
                     Debug.Log("Right Wall hit");
+                    switchForward = false;
+                    switchBack = false;
+                    switchRight = true;
+                    switchLeft = false;
+                    //play hologram left animation
                 }
                 else if (Hit.collider.tag == "Forward Wall")
                 {
                     Debug.Log("Forward wall hit");
+                    switchForward = true;
+                    switchBack = false;
+                    switchRight = false;
+                    switchLeft = false;
+                    //play hologram left animation
                 }
                 else if (Hit.collider.tag == "Back Wall")
                 {
                     Debug.Log("Back wall hit");
+                    switchForward = false;
+                    switchBack = true;
+                    switchRight = false;
+                    switchLeft = false;
+                    //play hologram left animation
                 }
             }
         }
