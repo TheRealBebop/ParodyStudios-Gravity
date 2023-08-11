@@ -46,7 +46,8 @@ public class GravitySwitchEnvironment : MonoBehaviour
     {
         if (grav.enterLeft == true)
         {
-            flyUp = new Vector3(transform.position.x, -3f, transform.position.z);
+            Transform plr = player.transform;
+            flyUp = new Vector3(transform.position.x, -9f, transform.position.z);
             while(transform.position != flyUp)
             {
                 player.enabled = false;

@@ -7,8 +7,11 @@ using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class GravitySwitch : MonoBehaviour
 {
+    [SerializeField] Transform parentObject;
+    [SerializeField] Transform childObject;
+
     [SerializeField] Vector3 goalposition;
-    [SerializeField] Vector3 goalrotation;
+    [SerializeField] Vector3 leftGoalRotation;
     [SerializeField] private AnimationCurve curve;
     public float rayRange = 10000000f;
     Vector3 actualdirection;
@@ -27,13 +30,12 @@ public class GravitySwitch : MonoBehaviour
 
     Vector3 gravityVelocity;
 
-    [SerializeField] float speed = 10f;
-    float current = 0f, target = 1f;
+    [SerializeField] float speed = 0.1f;
+    float current = 0f, target = 10f;
 
-    PlayerController controller;
-    public CharacterController characterController;
+    public PlayerController controller;
+    //public CharacterController characterController;
     HoloGravity holo;
-    public PlayerController player;
     Rigidbody rb;
     [SerializeField] GravitySwitchEnvironment env;
 
@@ -42,9 +44,8 @@ public class GravitySwitch : MonoBehaviour
     void Start()
     {
         controller = GetComponent<PlayerController>();
-        characterController = GetComponent<CharacterController>();
+        //characterController = GetComponent<CharacterController>();
         holo = GetComponent<HoloGravity>();
-        player = GetComponent<PlayerController>();
         rb = GetComponent<Rigidbody>();
         //env = GetComponent<GravitySwitchEnvironment>();
     }
@@ -52,23 +53,11 @@ public class GravitySwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {       
-            /*
-            if(Input.GetButtonDown("Submit") && switchLeft == true)
-            {
-                Vector3 flyUp = new Vector3(transform.position.x, -1.65f, transform.position.z);
+        if(Input.GetButtonDown("Submit") && switchLeft == true)
+        {
+            PlayerLerpLeft();
+        }
 
-                current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
-                transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
-                Debug.Log("Lerp done");
-                if (transform.position == flyUp)
-                {
-                    gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
-                    characterController.Move(gravityVelocity * Time.deltaTime);
-                    Debug.Log("Pushing Left");
-                }
-            }
-            */
         if (Input.GetButtonDown("Left"))
         {
             CastRay(-transform.right);
@@ -85,15 +74,52 @@ public class GravitySwitch : MonoBehaviour
         {
             CastRay(-transform.forward);
         }
-        if (Input.GetButtonDown("Submit"))
+        
+       // if (Input.GetButtonDown("Submit"))
+        //{
+          //  if(switchLeft == true)
+            //{
+                //transform.Rotate(Vector3.back, Time.deltaTime * 8f);
+                //enterLeft = true;
+                //Debug.Log("pass to env left rotate");
+                //env.RotateLeft();
+            //}
+       // }
+        
+    }
+
+    private void PlayerLerpLeft()
+    {
+        controller.enabled = false;
+        Vector3 flyUp = new Vector3(transform.position.x, transform.up.y + 4f, transform.position.z);
+        while(transform.position != flyUp)
         {
-            if(switchLeft == true)
-            {
-                enterLeft = true;
-                Debug.Log("pass to env left rotate");
-                env.RotateLeft();
-            }
+            current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(leftGoalRotation/*CHANGE THIS TO PLAYER'S LOCAL LEFT ANGLE*/), curve.Evaluate(current));
+            Debug.Log("Lerp done");
         }
+        Vector3 rotationLeftAmount = new Vector3(0, 0, 90);
+        RotateWorld(rotationLeftAmount);
+        /*
+        if (transform.position == flyUp)
+        {
+            gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
+            characterController.Move(gravityVelocity * Time.deltaTime);
+            Debug.Log("Pushing Left");
+        }
+        */
+    }
+    public void RotateWorld(Vector3 degreesToRotate)
+    {
+        childObject.parent = parentObject;
+        Quaternion worldGoalRotation = Quaternion.Euler(transform.rotation.eulerAngles + degreesToRotate);
+        while(transform.rotation != worldGoalRotation)
+        {
+            transform.rotation = Quaternion.Lerp(transform.rotation, worldGoalRotation, curve.Evaluate(current));
+        }
+        childObject.parent = null;
+        controller.enabled = true;
     }
 
     public void CastRay(Vector3 direction)
@@ -110,6 +136,7 @@ public class GravitySwitch : MonoBehaviour
             {
                 if (Hit.collider.tag == "Left Wall")
                 {
+                    //childObject.parent = parentObject;
                     Debug.Log("Left Wall hit");
                     switchForward = false;
                     switchBack = false;
@@ -119,6 +146,7 @@ public class GravitySwitch : MonoBehaviour
                 }
                 else if(Hit.collider.tag == "Right Wall")
                 {
+                    //childObject.parent = null;
                     Debug.Log("Right Wall hit");
                     switchForward = false;
                     switchBack = false;
@@ -147,13 +175,14 @@ public class GravitySwitch : MonoBehaviour
             }
         }
     }
+    /*
     private void PushLeft()
     {
         Vector3 fly = new Vector3(transform.position.x, -1.65f, transform.position.z);
 
         current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
         transform.position = Vector3.Lerp(transform.position, fly, curve.Evaluate(current));
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(goalrotation), curve.Evaluate(current));
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(leftGoalRotation), curve.Evaluate(current));
         Debug.Log("Lerp done");
         if (transform.position == fly)
         {
@@ -162,4 +191,5 @@ public class GravitySwitch : MonoBehaviour
             Debug.Log("Pushing Left");
         }
     }
+    */
 }
