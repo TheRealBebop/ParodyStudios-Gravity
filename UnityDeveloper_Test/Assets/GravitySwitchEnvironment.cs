@@ -39,7 +39,6 @@ public class GravitySwitchEnvironment : MonoBehaviour
             }
         }
         grav.enterLeft = true;
-        */
     }
 
     public void RotateLeft()
@@ -64,5 +63,6 @@ public class GravitySwitchEnvironment : MonoBehaviour
             //grav.enterLeft = false;
         }
         grav.enterLeft = true;
+        */
     }
 }
