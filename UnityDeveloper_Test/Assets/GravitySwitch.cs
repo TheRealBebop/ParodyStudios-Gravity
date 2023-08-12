@@ -35,6 +35,8 @@ public class GravitySwitch : MonoBehaviour
     int groundHit = 0;
     int ceilingHit = 0;
 
+    int flag = 0;
+
     public PlayerController controller;
     //public CharacterController characterController;
     HoloGravity holo;
@@ -47,6 +49,7 @@ public class GravitySwitch : MonoBehaviour
     Vector3 oldRotation;
     Vector3 newRotation;
     Vector3 worldRotation;
+    Quaternion goalRotation;
     bool worldRotate = false;
 
 
@@ -72,6 +75,7 @@ public class GravitySwitch : MonoBehaviour
         {
             Debug.Log("ExactRotation:" + exactRotation);
             PlayerLerp(exactRotation);
+            PlayerFlyUp(exactRotation);
         }
 
         //enter = 0;
@@ -111,10 +115,22 @@ public class GravitySwitch : MonoBehaviour
         }
     }
 
-    private void PlayerLerp(Vector3 deg)
+    public Quaternion PlayerLerp(Vector3 deg)
     {
         controller.enabled = false;
-        if (transform.position != flyUp)
+        goalRotation = Quaternion.Euler(0, 0, 0) * Quaternion.Euler(deg);
+
+        if (transform.rotation != goalRotation)
+        {
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, goalRotation, curve.Evaluate(current));
+            Debug.Log("ZEROING");
+        }
+        return goalRotation;
+    }
+
+    private void PlayerFlyUp(Vector3 deg)
+    {
+        if (transform.rotation == goalRotation && transform.position != flyUp)
         {
             current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
             transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
@@ -122,13 +138,6 @@ public class GravitySwitch : MonoBehaviour
             Debug.Log("Vector3 Lerp");
         }
         Debug.Log("deg:" + deg);
-        Quaternion goalRotation = Quaternion.Euler(0, 0, 0) * Quaternion.Euler(deg);
-
-        if (transform.rotation != goalRotation)
-        {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, goalRotation, curve.Evaluate(current));
-            Debug.Log("ZEROING");
-        }
 
         if (transform.rotation == goalRotation)
         {
@@ -150,8 +159,11 @@ public class GravitySwitch : MonoBehaviour
             backWallHit = 0;
             groundHit = 0;
             ceilingHit = 0;
+            flag = 0;
         }
     }
+
+
     public void RotateWorld(Vector3 degreesToRotate)
     {
         if (worldRotate == true && !rotating)
@@ -204,25 +216,21 @@ public class GravitySwitch : MonoBehaviour
 
                 if(switchLeft == 1) 
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3 (0f, 0f, -90f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
                 if(switchRight == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, 180f, 90f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
                 if (switchForward == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(-90f, -90f, 0f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
                 if (switchBack == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(90f, 90f, 0f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
@@ -233,22 +241,18 @@ public class GravitySwitch : MonoBehaviour
 
                 if (switchLeft == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, 180f, -90f);
                 }
                 if (switchRight == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, 0f, 90f);
                 }
                 if (switchForward == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(-90f, 90f, 0f);
                 }
                 if (switchBack == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(90f, -90f, 0f);
                 }
             }
@@ -259,22 +263,18 @@ public class GravitySwitch : MonoBehaviour
 
                 if (switchLeft == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, 90f, -90f);
                 }
                 if (switchRight == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, -90f, 90f);
                 }
                 if (switchForward == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(-90f, 0f, 0f);
                 }
                 if (switchBack == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(90f, 180f, 0f);
                 }
             }
@@ -285,22 +285,18 @@ public class GravitySwitch : MonoBehaviour
 
                 if (switchLeft == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, -90f, -90f);
                 }
                 if (switchRight == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(0f, 90f, 90f);
                 }
                 if (switchForward == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(-90f, 180f, 0f);
                 }
                 if (switchBack == 1)
                 {
-                    GetOldRotation();
                     exactRotation = new Vector3(90f, 0f, 0f);
                 }
             }
@@ -310,14 +306,20 @@ public class GravitySwitch : MonoBehaviour
                 groundHit = 1;
                 if (switchLeft == 1)
                 {
+                    exactRotation = new Vector3(0f, 90f, 0f);
+                }
+                if (switchRight == 1)
+                {
+                    exactRotation = new Vector3(0f, -90f, 0f);
+                }
+                if (switchForward == 1)
+                {
                     exactRotation = new Vector3(0f, 0f, 0f);
                 }
-                if (switchRight==1)
+                if (switchBack == 1)
                 {
-                    exactRotation = new Vector3(0f, 0f, 90f);
+                    exactRotation = new Vector3(0f, 180f, 0f);
                 }
-                //if switchForward
-                //if switchBack
             }
             else if (Hit.collider.tag == "Ceiling")
             {
@@ -325,11 +327,20 @@ public class GravitySwitch : MonoBehaviour
                 ceilingHit = 1;
                 if (switchLeft == 1)
                 {
-                    exactRotation = new Vector3(180f, 90f, 90f);
+                    exactRotation = new Vector3(0f, 180f, -180f);
                 }
-                //if switchRight
-                //if switchForward
-                //if switchBack
+                if (switchRight == 1)
+                {
+                    exactRotation = new Vector3(-180f, 180f, 0f);
+                }
+                if (switchForward == 1)
+                {
+                    exactRotation = new Vector3(-90f, 0f, -180f);
+                }
+                if (switchBack == 1)
+                {
+                    exactRotation = new Vector3(180f, -90f, 0f);
+                }
             }
         }
     }
