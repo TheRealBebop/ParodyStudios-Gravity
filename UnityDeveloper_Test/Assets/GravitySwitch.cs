@@ -10,7 +10,7 @@ public class GravitySwitch : MonoBehaviour
     [SerializeField] Transform parentPlayer;
     [SerializeField] Transform childEnv;
 
-    [SerializeField] Vector3 goalposition;
+    [SerializeField] Vector3 goalROTATE;
     [SerializeField] private AnimationCurve curve;
     public float rayRange = 10000000f;
     Vector3 actualdirection;
@@ -19,6 +19,8 @@ public class GravitySwitch : MonoBehaviour
     public int switchRight = 0;
     public int switchForward = 0;
     public int switchBack = 0;
+
+    private bool rotating = false;
 
     int enter = 0;
 
@@ -36,13 +38,15 @@ public class GravitySwitch : MonoBehaviour
     //public CharacterController characterController;
     HoloGravity holo;
     Rigidbody rb;
-    [SerializeField] GravitySwitchEnvironment env;
+    //[SerializeField] GravitySwitchEnvironment env;
 
     Vector3 flyUp;
     Quaternion leftGoalRotation;
     Vector3 exactRotation;
     Vector3 oldRotation;
     Vector3 newRotation;
+    Vector3 worldRotation;
+    bool worldRotate = false;
 
 
     // Start is called before the first frame update
@@ -63,7 +67,7 @@ public class GravitySwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {       
-        if(enter == 1 && (switchLeft == 1 || switchRight == 1 || switchBack == 1 || switchForward == 1))
+        if(enter == 1 && switchLeft == 1 /*|| switchRight == 1 || switchBack == 1 || switchForward == 1)*/ )
         {
             Debug.Log("ExactRotation:" + exactRotation);
             PlayerLerp(exactRotation);
@@ -104,19 +108,6 @@ public class GravitySwitch : MonoBehaviour
                 Debug.Log("Enter hit");
             }
         }
-
-
-        // if (Input.GetButtonDown("Submit"))
-        //{
-        //  if(switchLeft == true)
-        //{
-        //transform.Rotate(Vector3.back, Time.deltaTime * 8f);
-        //enterLeft = true;
-        //Debug.Log("pass to env left rotate");
-        //env.RotateLeft();
-        //}
-        // }
-
     }
 
     private void PlayerLerp(Vector3 deg)
@@ -139,14 +130,24 @@ public class GravitySwitch : MonoBehaviour
             Debug.Log("ZEROING");
         }
 
-        if (transform.rotation == leftGoalRotation)
+        if (transform.rotation == goalRotation)
         {
             enter = 0;
             switchLeft = 0;
+
+            leftWallHit = false;
+            rightWallHit = false;
+            forwardWallHit = false;
+            backWallHit = false;
+            groundHit = false;
+            ceilingHit = false;
+
             newRotation = new Vector3(transform.rotation.x, transform.rotation.y, transform.rotation.z);
-            exactRotation = newRotation - oldRotation;
-            //RotateWorld(exactRotation);
+            worldRotation = newRotation - oldRotation;
+            worldRotate = true;
+            Debug.Log("Player Rotation done");
         }
+        RotateWorld(worldRotation);
         /*
         controller.enabled = false;
         Vector3 flyUp = new Vector3(transform.position.x, -12.34f, transform.position.z);
@@ -170,22 +171,79 @@ public class GravitySwitch : MonoBehaviour
     }
     public void RotateWorld(Vector3 degreesToRotate)
     {
-        childEnv.parent = parentPlayer;
-        //Vector3 targetEulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 90.1f);
-        //targetEulerAngles.x = 0;
-        //targetEulerAngles.y = 0;
-        //Quaternion worldGoalRotation = Quaternion.Euler(targetEulerAngles);
-       Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(degreesToRotate);
-        float maxAngle = 90.1f * curve.Evaluate(current);
-        //worldGoalRotation.x = 0;
-        //worldGoalRotation.y = 0;
-        while (transform.rotation != worldGoalRotation)
+        if (worldRotate == true && !rotating)
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, worldGoalRotation, curve.Evaluate(current));
+            rotating = true;
+
+            childEnv.parent = parentPlayer;
+
+            Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(0, 0, 90f);
+            float maxAngle = 90.0f * curve.Evaluate(current);
+
+            StartCoroutine(RotateTowards(worldGoalRotation, maxAngle));
         }
+    }
+
+    IEnumerator RotateTowards(Quaternion targetRotation, float maxAngle)
+    {
+        if(worldRotate == true)
+        {
+            while (Quaternion.Angle(transform.rotation, targetRotation) > 0.01f)
+            {
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxAngle * Time.deltaTime);
+                yield return null;
+            }
+        }
+
+        worldRotate = false;
+        Debug.Log("World rotation done");
         childEnv.parent = null;
         controller.enabled = true;
+
+        rotating = false;
     }
+    /*
+    childEnv.parent = parentPlayer;
+    //Vector3 targetEulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 90.1f);
+    //targetEulerAngles.x = 0;
+    //targetEulerAngles.y = 0;
+    //Quaternion worldGoalRotation = Quaternion.Euler(targetEulerAngles);
+    //degreesToRotate = new Vector3(0, 0, 90f);
+    Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(0,0,90f);
+    float maxAngle = 90.0f * curve.Evaluate(current);
+
+    //worldGoalRotation.x = 0;
+    //worldGoalRotation.y = 0;
+    while (transform.rotation != worldGoalRotation)
+    {
+        //transform.Rotate(degreesToRotate, Space.World);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, worldGoalRotation, maxAngle);
+        Debug.Log("rotating");
+    }
+    Debug.Log("World rotation done");
+    childEnv.parent = null;
+    controller.enabled = true;
+    */
+    /*
+    childEnv.parent = parentPlayer;
+    Vector3 targetEulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 90.1f);
+    //targetEulerAngles.x = 0;
+    //targetEulerAngles.y = 0;
+    Quaternion worldGoalRotation = Quaternion.Euler(targetEulerAngles);
+    //worldGoalRotation = transform.rotation * Quaternion.Euler(0, 0, 90);
+    float maxAngle = 90.1f * curve.Evaluate(current);
+    //worldGoalRotation.x = 0;
+    //worldGoalRotation.y = 0;
+    while (transform.rotation != worldGoalRotation)
+    {
+        //transform.Rotate(degreesToRotate, Space.World);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, worldGoalRotation, curve.Evaluate(current));
+    }
+    Debug.Log("World rotation done");
+    childEnv.parent = null;
+    controller.enabled = true;
+    */
+
 
     public void CastRay(Vector3 direction)
     {

@@ -11,6 +11,7 @@ TagManager:
   - Left Wall
   - Up Wall
   - Ground
+  - Ceiling
   layers:
   - Default
   - TransparentFX
