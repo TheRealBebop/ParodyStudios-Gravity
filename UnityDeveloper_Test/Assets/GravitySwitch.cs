@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,12 +28,12 @@ public class GravitySwitch : MonoBehaviour
     [SerializeField] float speed = 0.1f;
     float current = 0f, target = 10f;
 
-    bool leftWallHit = false;
-    bool rightWallHit = false;
-    bool forwardWallHit = false;
-    bool backWallHit = false;
-    bool groundHit = false;
-    bool ceilingHit = false;
+    int leftWallHit = 0;
+    int rightWallHit = 0;
+    int forwardWallHit = 0;
+    int backWallHit = 0;
+    int groundHit = 0;
+    int ceilingHit = 0;
 
     public PlayerController controller;
     //public CharacterController characterController;
@@ -67,7 +68,7 @@ public class GravitySwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {       
-        if(enter == 1 && switchLeft == 1 /*|| switchRight == 1 || switchBack == 1 || switchForward == 1)*/ )
+        if(enter == 1 && (switchLeft == 1 || switchRight == 1 || switchForward == 1 || switchBack == 1))
         {
             Debug.Log("ExactRotation:" + exactRotation);
             PlayerLerp(exactRotation);
@@ -112,7 +113,6 @@ public class GravitySwitch : MonoBehaviour
 
     private void PlayerLerp(Vector3 deg)
     {
-        oldRotation = new Vector3 (transform.rotation.x, transform.rotation.y, transform.rotation.z);
         controller.enabled = false;
         if (transform.position != flyUp)
         {
@@ -132,42 +132,25 @@ public class GravitySwitch : MonoBehaviour
 
         if (transform.rotation == goalRotation)
         {
-            enter = 0;
-            switchLeft = 0;
 
-            leftWallHit = false;
-            rightWallHit = false;
-            forwardWallHit = false;
-            backWallHit = false;
-            groundHit = false;
-            ceilingHit = false;
-
-            newRotation = new Vector3(transform.rotation.x, transform.rotation.y, transform.rotation.z);
+            newRotation = transform.rotation.eulerAngles;
+            Debug.Log("New rotation:" + newRotation);
             worldRotation = newRotation - oldRotation;
             worldRotate = true;
             Debug.Log("Player Rotation done");
+            Debug.Log("World Rotation: " + worldRotation);
+            RotateWorld(worldRotation * -1);
+
+            enter = 0;
+            switchLeft = 0;
+
+            leftWallHit = 0;
+            rightWallHit = 0;
+            forwardWallHit = 0;
+            backWallHit = 0;
+            groundHit = 0;
+            ceilingHit = 0;
         }
-        RotateWorld(worldRotation);
-        /*
-        controller.enabled = false;
-        Vector3 flyUp = new Vector3(transform.position.x, -12.34f, transform.position.z);
-        while(transform.position != flyUp)
-        {
-            current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
-            transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
-            Quaternion leftGoalRotation = transform.rotation * Quaternion.Euler(0, 0, 90);
-            transform.rotation = Quaternion.Lerp(transform.rotation, leftGoalRotation, curve.Evaluate(current));
-            Debug.Log("Lerp done");
-        }
-        Vector3 rotationLeftAmount = new Vector3(0, 0, 90);
-        //RotateWorld(rotationLeftAmount);
-        if (transform.position == flyUp)
-        {
-            gravityVelocity.x = Mathf.Sqrt((4 * 10) * -2 * 9.81f);
-            characterController.Move(gravityVelocity * Time.deltaTime);
-            Debug.Log("Pushing Left");
-        }
-        */
     }
     public void RotateWorld(Vector3 degreesToRotate)
     {
@@ -177,13 +160,13 @@ public class GravitySwitch : MonoBehaviour
 
             childEnv.parent = parentPlayer;
 
-            Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(0, 0, 90f);
+            Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(degreesToRotate);
+            Debug.Log("Rotated: " + degreesToRotate);
             float maxAngle = 90.0f * curve.Evaluate(current);
 
             StartCoroutine(RotateTowards(worldGoalRotation, maxAngle));
         }
     }
-
     IEnumerator RotateTowards(Quaternion targetRotation, float maxAngle)
     {
         if(worldRotate == true)
@@ -202,49 +185,8 @@ public class GravitySwitch : MonoBehaviour
 
         rotating = false;
     }
-    /*
-    childEnv.parent = parentPlayer;
-    //Vector3 targetEulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 90.1f);
-    //targetEulerAngles.x = 0;
-    //targetEulerAngles.y = 0;
-    //Quaternion worldGoalRotation = Quaternion.Euler(targetEulerAngles);
-    //degreesToRotate = new Vector3(0, 0, 90f);
-    Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(0,0,90f);
-    float maxAngle = 90.0f * curve.Evaluate(current);
 
-    //worldGoalRotation.x = 0;
-    //worldGoalRotation.y = 0;
-    while (transform.rotation != worldGoalRotation)
-    {
-        //transform.Rotate(degreesToRotate, Space.World);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, worldGoalRotation, maxAngle);
-        Debug.Log("rotating");
-    }
-    Debug.Log("World rotation done");
-    childEnv.parent = null;
-    controller.enabled = true;
-    */
-    /*
-    childEnv.parent = parentPlayer;
-    Vector3 targetEulerAngles = transform.rotation.eulerAngles + new Vector3(0, 0, 90.1f);
-    //targetEulerAngles.x = 0;
-    //targetEulerAngles.y = 0;
-    Quaternion worldGoalRotation = Quaternion.Euler(targetEulerAngles);
-    //worldGoalRotation = transform.rotation * Quaternion.Euler(0, 0, 90);
-    float maxAngle = 90.1f * curve.Evaluate(current);
-    //worldGoalRotation.x = 0;
-    //worldGoalRotation.y = 0;
-    while (transform.rotation != worldGoalRotation)
-    {
-        //transform.Rotate(degreesToRotate, Space.World);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, worldGoalRotation, curve.Evaluate(current));
-    }
-    Debug.Log("World rotation done");
-    childEnv.parent = null;
-    controller.enabled = true;
-    */
-
-
+   
     public void CastRay(Vector3 direction)
     {
         actualdirection = direction;
@@ -258,135 +200,142 @@ public class GravitySwitch : MonoBehaviour
             Physics.Raycast(ray, out Hit, rayRange);
             if(Hit.collider.tag == "Left Wall")
             {
-                leftWallHit = true;
-                rightWallHit = false;
-                forwardWallHit = false;
-                backWallHit = false;
-                groundHit = false;
-                ceilingHit = false;
+                leftWallHit = 1;
+
                 if(switchLeft == 1) 
                 {
-                    exactRotation =new Vector3 (0f, 0f, -90f);
+                    GetOldRotation();
+                    exactRotation = new Vector3 (0f, 0f, -90f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
-                if(switchRight == 1) 
+                if(switchRight == 1)
                 {
-                    exactRotation = new Vector3(0f, 0f, 90f);
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, 180f, 90f);
+                    Debug.Log("EXACT ROTATION : " + exactRotation);
+                }
+                if (switchForward == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(-90f, -90f, 0f);
+                    Debug.Log("EXACT ROTATION : " + exactRotation);
+                }
+                if (switchBack == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(90f, 90f, 0f);
                     Debug.Log("EXACT ROTATION : " + exactRotation);
                 }
             }
             else if(Hit.collider.tag == "Right Wall")
             {
-                leftWallHit = false;
-                rightWallHit = true;
-                forwardWallHit = false;
-                backWallHit = false;
-                groundHit = false;
-                ceilingHit = false;
+                rightWallHit = 1;
+
                 if (switchLeft == 1)
                 {
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, 180f, -90f);
+                }
+                if (switchRight == 1)
+                {
+                    GetOldRotation();
                     exactRotation = new Vector3(0f, 0f, 90f);
                 }
-                if(switchRight == 1)
+                if (switchForward == 1)
                 {
-                    exactRotation = new Vector3(0f, 0f, -90f);
+                    GetOldRotation();
+                    exactRotation = new Vector3(-90f, 90f, 0f);
+                }
+                if (switchBack == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(90f, -90f, 0f);
                 }
             }
             else if(Hit.collider.tag == "Forward Wall")
             {
-                leftWallHit = false;
-                rightWallHit = false;
-                forwardWallHit = true;
-                backWallHit = false;
-                groundHit = false;
-                ceilingHit = false;
+
+                forwardWallHit = 1;
+
                 if (switchLeft == 1)
                 {
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, 90f, -90f);
+                }
+                if (switchRight == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, -90f, 90f);
+                }
+                if (switchForward == 1)
+                {
+                    GetOldRotation();
                     exactRotation = new Vector3(-90f, 0f, 0f);
+                }
+                if (switchBack == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(90f, 180f, 0f);
                 }
             }
             else if(Hit.collider.tag == "Back Wall")
             {
-                leftWallHit = false;
-                rightWallHit = false;
-                forwardWallHit = false;
-                backWallHit = true;
-                groundHit = false;
-                ceilingHit = false;
+
+                backWallHit = 1;
+
                 if (switchLeft == 1)
                 {
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, -90f, -90f);
+                }
+                if (switchRight == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(0f, 90f, 90f);
+                }
+                if (switchForward == 1)
+                {
+                    GetOldRotation();
+                    exactRotation = new Vector3(-90f, 180f, 0f);
+                }
+                if (switchBack == 1)
+                {
+                    GetOldRotation();
                     exactRotation = new Vector3(90f, 0f, 0f);
                 }
             }
             else if (Hit.collider.tag == "Ground")
             {
-                leftWallHit = false;
-                rightWallHit = false;
-                forwardWallHit = false;
-                backWallHit = false;
-                groundHit = true;
-                ceilingHit = false;
+
+                groundHit = 1;
                 if (switchLeft == 1)
                 {
-                    exactRotation = new Vector3(0f, 90f, 90f);
+                    exactRotation = new Vector3(0f, 0f, 0f);
                 }
+                if (switchRight==1)
+                {
+                    exactRotation = new Vector3(0f, 0f, 90f);
+                }
+                //if switchForward
+                //if switchBack
             }
             else if (Hit.collider.tag == "Ceiling")
             {
-                leftWallHit = false;
-                rightWallHit = false;
-                forwardWallHit = false;
-                backWallHit = false;
-                groundHit = false;
-                ceilingHit = true;
+
+                ceilingHit = 1;
                 if (switchLeft == 1)
                 {
                     exactRotation = new Vector3(180f, 90f, 90f);
                 }
+                //if switchRight
+                //if switchForward
+                //if switchBack
             }
-
-            /*
-            if (Hit.collider.tag == "Left Wall")
-            {
-                //childObject.parent = parentObject;
-                Debug.Log("Left Wall hit");
-                switchForward = false;
-                switchBack = false;
-                switchRight = false;
-                switchLeft = 1;
-                Debug.Log("switch left is 1");
-                //enter = true;
-                //play hologram left animation
-            }
-            else if(Hit.collider.tag == "Right Wall")
-            {
-                //childObject.parent = null;
-                Debug.Log("Right Wall hit");
-                switchForward = false;
-                switchBack = false;
-                switchRight = true;
-                switchLeft = 0;
-                //play hologram left animation
-            }
-            else if (Hit.collider.tag == "Forward Wall")
-            {
-                Debug.Log("Forward wall hit");
-                switchForward = true;
-                switchBack = false;
-                switchRight = false;
-                switchLeft = 0;
-                //play hologram left animation
-            }
-            else if (Hit.collider.tag == "Back Wall")
-            {
-                Debug.Log("Back wall hit");
-                switchForward = false;
-                switchBack = true;
-                switchRight = false;
-                switchLeft = 0;
-                //play hologram left animation
-            }
-            */
         }
+    }
+    private void GetOldRotation()
+    {
+        oldRotation = transform.rotation.eulerAngles;
+        Debug.Log("Old rotation:" + oldRotation);
     }
 }
