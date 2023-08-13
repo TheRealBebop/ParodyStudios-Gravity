@@ -6,18 +6,20 @@ using TMPro;
 
 public class CubeTimer : MonoBehaviour
 {
-    float timer = 120f;
+    public float timer = 2f;
     public int playerScore;
     public int maxScore = 6;
     string timeInMinutes;
     [SerializeField] TextMeshProUGUI ScoreText;
     [SerializeField] TextMeshProUGUI timerText;
-    [SerializeField] TextMeshProUGUI congratsText;
+    [SerializeField] Canvas congratsCanvas;
+    FallDamage kill;
     // Start is called before the first frame update
     void Start()
     {
-        congratsText.gameObject.SetActive(false);
+        congratsCanvas.gameObject.SetActive(false);
         playerScore = 0;
+        kill = GetComponent<FallDamage>();
     }
 
     // Update is called once per frame
@@ -26,17 +28,17 @@ public class CubeTimer : MonoBehaviour
         FormatTime(timer);
         timerText.text = timeInMinutes;
         ScoreText.text = new string(playerScore.ToString() + "/6 cubes");
-        if (timer > 0)
+        if (timer >= 0)
         {
             timer -= Time.deltaTime;
         }
         else
         {
-            Debug.Log("Time's up!");
+            kill.GameOver();
         }
         if(playerScore == maxScore)
         {
-            congratsText.gameObject.SetActive(true);
+            congratsCanvas.gameObject.SetActive(true);
         }
     }
 

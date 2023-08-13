@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] Animator animator;
     public CharacterController controller;
+    FallDamage kill;
     public float movementSpeed = 4f;
     public float smoothTime = 0.1f;
     public Transform camera;
     [SerializeField] Rigidbody rigidBody;
 
-    //public float jumpForce = 50f;
     public bool jumping;
     float turnSmoothVelocity;
     Vector3 lastPosition;
@@ -29,25 +28,17 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        kill = GetComponent<FallDamage>();
         rigidBody = GetComponent<Rigidbody>();
         animator = GetComponentInChildren<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-    //private void OnDrawGizmos() //Draw CheckSphere/isGrounded sphere
-    //{
-      //  Gizmos.DrawSphere(transform.position, 0.1f);
-    //}
 
     void Update()
     {
         IsGrounded();
         IsMoving();
-        /* if(grounded && velocity.y < 0)
-         {
-             velocity.y = -1;
-         }
-        */
 
         lastPosition = transform.position;
         Vector2 movement = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
@@ -72,16 +63,6 @@ public class PlayerController : MonoBehaviour
             controller.Move(moveDirection.normalized * movementSpeed * Time.deltaTime);
         }
         Jump();
-        if(isWalkingOnLeftWall == true)
-        {
-            //SetGravityLeft();
-            //JumpLeft();
-        }
-    }
-
-    private void SetGravityLeft()
-    {
-        //velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
     }
 
     private void Jump()
@@ -120,7 +101,6 @@ public class PlayerController : MonoBehaviour
 
     public bool IsGrounded()
     {
-        //grounded = Physics.CheckSphere(transform.position, 0.1f, 1);
         if (grounded == true)
         {
             animator.SetBool("Grounded", true);
@@ -140,8 +120,8 @@ public class PlayerController : MonoBehaviour
             Debug.Log("Landed");
         if(collision.collider.tag == "Outside")
         {
-            Debug.Log("This is Left Wall");
-            isWalkingOnLeftWall = true;
+            Debug.Log("This is Game Over");
+            kill.GameOver();
         }
     }
 

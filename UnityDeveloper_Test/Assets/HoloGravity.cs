@@ -4,15 +4,29 @@ using UnityEngine;
 
 public class HoloGravity : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] Animator holo;
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetButtonDown("Left"))
+        {
+            holo.SetTrigger("left");
+        }
+
+        if (Input.GetButtonDown("Right"))
+        {
+            holo.SetTrigger("right");
+        }
+
+        if (Input.GetButtonDown("Forward"))
+        {
+            holo.SetTrigger("forward");
+        }
+
+        if (Input.GetButtonDown("Back"))
+        {
+            holo.SetTrigger("back");
+        }
     }
 }

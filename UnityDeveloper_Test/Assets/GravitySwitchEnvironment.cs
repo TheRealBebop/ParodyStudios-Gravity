@@ -21,48 +21,5 @@ public class GravitySwitchEnvironment : MonoBehaviour
 
     void Update()
     {
-        /*
-        if(grav.enterLeft == true)
-        {
-            //player.enabled = false;
-            Vector3 flyUp = new Vector3(transform.position.x, -3f, transform.position.z);
-
-            current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
-            transform.position = Vector3.Lerp(transform.position, flyUp, curveEnv.Evaluate(current));
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(rotateLeft), curveEnv.Evaluate(current));
-            Debug.Log("Lerp done");
-            if(transform.position == flyUp)
-            {
-                player.enabled = true;
-                player.gravity = -9.81f;
-            //grav.enterLeft = false;
-            }
-        }
-        grav.enterLeft = true;
-    }
-
-    public void RotateLeft()
-    {
-        if (grav.enterLeft == true)
-        {
-            Transform plr = player.transform;
-            flyUp = new Vector3(transform.position.x, -9f, transform.position.z);
-            while(transform.position != flyUp)
-            {
-                player.enabled = false;
-                current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
-                transform.position = Vector3.Lerp(transform.position, flyUp, curveEnv.Evaluate(current));
-                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(rotateLeft), curveEnv.Evaluate(current));
-                Debug.Log("Lerp done");
-            }
-        }
-        if (transform.position == flyUp)
-        {
-            player.enabled = true;
-            player.gravity = -9.81f;
-            //grav.enterLeft = false;
-        }
-        grav.enterLeft = true;
-        */
     }
 }
