@@ -135,19 +135,14 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Ground"))
-        {
             grounded = true;
             jumping = false;
             Debug.Log("Landed");
-        }
-        /*
-        if(collision.collider.tag == "Left Wall")
+        if(collision.collider.tag == "Outside")
         {
             Debug.Log("This is Left Wall");
             isWalkingOnLeftWall = true;
         }
-        */
     }
 
     private void OnCollisionExit(Collision collision)

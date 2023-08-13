@@ -4,7 +4,9 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 using static UnityEditor.Searcher.SearcherWindow.Alignment;
+using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 public class GravitySwitch : MonoBehaviour
 {
@@ -35,8 +37,6 @@ public class GravitySwitch : MonoBehaviour
     int groundHit = 0;
     int ceilingHit = 0;
 
-    int flag = 0;
-
     public PlayerController controller;
     //public CharacterController characterController;
     HoloGravity holo;
@@ -50,8 +50,7 @@ public class GravitySwitch : MonoBehaviour
     Vector3 newRotation;
     Vector3 worldRotation;
     Quaternion goalRotation;
-    bool worldRotate = false;
-
+    bool rotatePlayerAndWorld = false;
 
     // Start is called before the first frame update
     void Start()
@@ -82,35 +81,35 @@ public class GravitySwitch : MonoBehaviour
                 RotateToNearest90(transform.forward);
             if (switchBack == 1)
                 RotateToNearest90(-transform.forward);
-            //PlayerLerp(exactRotation);
-            //PlayerFlyUp(exactRotation);
         }
 
-        //enter = 0;
-        //switchLeft = 0;
+        
+        //if (rotateToWall == true)
+            //PlayerLerp(exactRotation);
+            //RotateToGlobalUp();
 
         if (Input.GetButtonDown("Left"))
         {
             switchLeft = 1;
-            CastRay(-transform.right);
+            //CastRay(-transform.right);
         }
 
         if (Input.GetButtonDown("Right"))
         {
             switchRight = 1;
-            CastRay(transform.right);
+            //CastRay(transform.right);
         }
 
         if (Input.GetButtonDown("Forward"))
         {
             switchForward = 1;
-            CastRay(transform.forward);
+            //CastRay(transform.forward);
         }
 
         if (Input.GetButtonDown("Back"))
         {
             switchBack = 1;
-            CastRay(-transform.forward);
+            //CastRay(-transform.forward);
         }
 
         if (switchLeft == 1 || switchRight == 1 || switchBack == 1 || switchForward == 1)
@@ -126,91 +125,124 @@ public class GravitySwitch : MonoBehaviour
     public void RotateToNearest90(Vector3 snap)
     {
         Vector3 localDirection = snap;
-        Vector3 dir = snap;
         Quaternion targetRotation = Quaternion.LookRotation(localDirection, transform.up);
         transform.rotation = targetRotation;
 
         Vector3 currentRotation = transform.eulerAngles;
         float newYRotation = Mathf.Round(currentRotation.y / 90.0f) * 90.0f;
         transform.eulerAngles = new Vector3(currentRotation.x, newYRotation, currentRotation.z);
-
+        Debug.Log("Rotated to right angle");
+        controller.enabled = false;
+        FlyUp();
+        if(switchForward == 1 || switchLeft == 1 || switchRight == 1 || switchBack == 1)
+        {
+            RotateUp();
+            childEnv.parent = parentPlayer;
+            controller.enabled = false;
+            RotateDown();
+            childEnv.parent = null;
+            controller.enabled = true;
+        }
+        /*
+        if(switchLeft == 1)
+        {
+            RotateLeft();
+        }
+        if(switchRight == 1)
+        {
+            RotateRight();
+        }
+        */
         enter = 0;
         switchLeft = 0;
         switchRight = 0;
         switchForward = 0;
         switchBack = 0;
-        //Vector3 localLeftDirection = -transform.right; // The local left direction of the object
-        /*
-        // Calculate the rotations to global directions
-        Quaternion toForward = Quaternion.FromToRotation(dir, Vector3.forward);
-        Quaternion toBack = Quaternion.FromToRotation(dir, Vector3.back);
-        Quaternion toRight = Quaternion.FromToRotation(dir, Vector3.right);
-        Quaternion toLeft = Quaternion.FromToRotation(dir, Vector3.left);
-        // Determine the closest global direction
-        targetRotation = Quaternion.identity;
-        float minimumAngle = float.MaxValue;
-
-        float angleForward = Quaternion.Angle(transform.rotation, toForward);
-        if (angleForward < minimumAngle)
-        {
-            minimumAngle = angleForward;
-            Debug.Log("Min angle:" + minimumAngle);
-            targetRotation = toForward;
-        }
-
-        float angleBack = Quaternion.Angle(transform.rotation, toBack);
-        if (angleBack < minimumAngle)
-        {
-            minimumAngle = angleBack;
-            Debug.Log("Min angle:" + minimumAngle);
-            targetRotation = toBack;
-        }
-
-        float angleRight = Quaternion.Angle(transform.rotation, toRight);
-        if (angleRight < minimumAngle)
-        {
-            minimumAngle = angleRight;
-            Debug.Log("Min angle:" + minimumAngle);
-            targetRotation = toRight;
-        }
-
-        float angleLeft = Quaternion.Angle(transform.rotation, toLeft);
-        if (angleLeft < minimumAngle)
-        {
-            Debug.Log("Min angle:" + minimumAngle);
-            targetRotation = toLeft;
-        }
-        // Apply the closest rotation
-        transform.rotation = Quaternion.FromToRotation(dir, Vector3.left);
-
-        /*
-        Vector3 currentRotation = transform.eulerAngles;
-        float newYRotation = Mathf.Round(currentRotation.y / 90.0f) * 90.0f;
-
-        targetRotation = Quaternion.LookRotation(snap);
-        targetRotation.eulerAngles = new Vector3(currentRotation.x, newYRotation, currentRotation.z);
-
-        transform.rotation = targetRotation;
-        */
+        //GetOldRotation();
     }
-    public Quaternion PlayerLerp(Vector3 deg)
+
+    private void FlyUp()
+    {
+        transform.Translate(new Vector3(0f, 2f, 0f));
+    }
+
+    public void RotateUp()
+    {
+        Vector3 rotation = new Vector3(-90f, 0f, 0f);
+        transform.Rotate(rotation);
+    }
+    public void RotateDown()
+    {
+            Vector3 rotation = new Vector3(90f, 0f, 0f);
+            transform.Rotate(rotation);
+    }
+    /*
+    public void RotateLeft()
+    {
+        if (rotatePlayerAndWorld == false)
+        {
+            Vector3 rotation = new Vector3(0f, 0f, -90f);
+            transform.Rotate(rotation);
+            //rotatePlayerAndWorld = true;
+            //RotateRight();
+        }
+        else if (rotatePlayerAndWorld == true)
+        {
+            childEnv.parent = parentPlayer;
+            Vector3 rotation = new Vector3(0f, 0f, -90f);
+            transform.Rotate(rotation);
+            childEnv.parent = null;
+            controller.enabled = true;
+            rotatePlayerAndWorld = false;
+        }
+    }
+    public void RotateRight()
+    {
+        if (rotatePlayerAndWorld == false)
+        {
+            Vector3 rotation = new Vector3(0f, 0f, 90f);
+            transform.Rotate(rotation);
+            rotatePlayerAndWorld = true;
+            RotateLeft();
+        }
+        else if (rotatePlayerAndWorld == true)
+        {
+            childEnv.parent = parentPlayer;
+            Vector3 rotation = new Vector3(-90f, 0f, 90f);
+            transform.Rotate(rotation);
+            childEnv.parent = null;
+            controller.enabled = true;
+            rotatePlayerAndWorld = false;
+        }
+    }
+    */
+    /*
+    private void GetOldRotation()
+    {
+        oldRotation = transform.rotation.eulerAngles;
+        Debug.Log("Old rotation:" + oldRotation);
+    }
+    */
+
+    /*
+    public void PlayerLerp(Vector3 deg)
     {
         controller.enabled = false;
-        //RotateToNearest90();
-        
-        goalRotation = Quaternion.Euler(0, 0, 0) * Quaternion.Euler(deg);
+        //Debug.Log("DEG:" + deg);
+       // Vector3 finalRotation = oldRotation - deg;
+        //goalRotation = Quaternion.Euler(finalRotation);
+        //Debug.Log("Goal Rotation:" + goalRotation.eulerAngles);
 
-        if (transform.rotation != goalRotation)
+        if (transform.rotation != Quaternion.Euler(deg))
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, goalRotation, curve.Evaluate(current));
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(deg), curve.Evaluate(current));
             Debug.Log("ZEROING");
         }
-        return goalRotation;
+        PlayerFlyUp(deg);
     }
-
     private void PlayerFlyUp(Vector3 deg)
     {
-        if (transform.rotation == goalRotation && transform.position != flyUp)
+        if (transform.position != flyUp)
         {
             current = Mathf.MoveTowards(current, target, speed * Time.deltaTime);
             transform.position = Vector3.Lerp(transform.position, flyUp, curve.Evaluate(current));
@@ -218,16 +250,15 @@ public class GravitySwitch : MonoBehaviour
             Debug.Log("Vector3 Lerp");
         }
 
-        if (transform.rotation == goalRotation)
+        if (transform.rotation == Quaternion.Euler(deg))
         {
-
+            /*
             newRotation = transform.rotation.eulerAngles;
             Debug.Log("New rotation:" + newRotation);
             worldRotation = newRotation - oldRotation;
             worldRotate = true;
             Debug.Log("Player Rotation done");
             Debug.Log("World Rotation: " + worldRotation);
-            RotateWorld(worldRotation * -1);
 
             enter = 0;
             switchLeft = 0;
@@ -241,42 +272,52 @@ public class GravitySwitch : MonoBehaviour
             backWallHit = 0;
             groundHit = 0;
             ceilingHit = 0;
-            flag = 0;
+            RotateWorld();
+
         }
     }
 
-
-    public void RotateWorld(Vector3 degreesToRotate)
+    public void RotateWorld()
     {
+        newRotation = transform.rotation.eulerAngles;
+        Debug.Log("New rotation:" + newRotation);
+        worldRotation = newRotation - oldRotation;
+        worldRotate = true;
+        Debug.Log("Player Rotation done");
+        Debug.Log("World Rotation: " + worldRotation);
+
         if (worldRotate == true && !rotating)
         {
             rotating = true;
 
             childEnv.parent = parentPlayer;
 
-            Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(degreesToRotate);
-            Debug.Log("Rotated: " + degreesToRotate);
+            
+            Quaternion worldGoalRotation = transform.rotation * Quaternion.Euler(worldRotation);
+            Debug.Log("Rotated: " + worldRotation);
             float maxAngle = 90.0f * curve.Evaluate(current);
-
-            StartCoroutine(RotateTowards(worldGoalRotation, maxAngle));
+            
+            Debug.Log("World rotation IS: " + oldRotation);
+            StartCoroutine(RotateTowards());
         }
     }
-    IEnumerator RotateTowards(Quaternion targetRotation, float maxAngle)
+    IEnumerator RotateTowards()
     {
         if(worldRotate == true)
         {
-            while (Quaternion.Angle(transform.rotation, targetRotation) > 0.01f)
+            while (transform.rotation != Quaternion.Euler(oldRotation))
             {
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxAngle * Time.deltaTime);
-                yield return null;
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(oldRotation), curve.Evaluate(current));
+                Debug.Log("Gotta rotate");
             }
+            yield return null;
         }
 
         worldRotate = false;
         Debug.Log("World rotation done");
         childEnv.parent = null;
         controller.enabled = true;
-
+        rotateToWall = false;
         rotating = false;
     }
 
@@ -327,7 +368,7 @@ public class GravitySwitch : MonoBehaviour
                 }
                 if (switchRight == 1)
                 {
-                    exactRotation = new Vector3(0f, 0f, 90f);
+                    exactRotation = new Vector3(90f, 0f, 90f);
                 }
                 if (switchForward == 1)
                 {
@@ -353,7 +394,7 @@ public class GravitySwitch : MonoBehaviour
                 }
                 if (switchForward == 1)
                 {
-                    exactRotation = new Vector3(-90f, 0f, 0f);
+                    exactRotation = new Vector3(90f, 0f, 180f);
                 }
                 if (switchBack == 1)
                 {
@@ -403,6 +444,7 @@ public class GravitySwitch : MonoBehaviour
                     exactRotation = new Vector3(0f, 180f, 0f);
                 }
             }
+            //CEILING DONE
             else if (Hit.collider.tag == "Ceiling")
             {
 
@@ -417,18 +459,14 @@ public class GravitySwitch : MonoBehaviour
                 }
                 if (switchForward == 1)
                 {
-                    exactRotation = new Vector3(-90f, 0f, -180f);
+                    exactRotation = new Vector3(0f, -90f, 180f);
                 }
                 if (switchBack == 1)
                 {
-                    exactRotation = new Vector3(180f, -90f, 0f);
+                    exactRotation = new Vector3(0f, 90f, -180f);
                 }
             }
         }
     }
-    private void GetOldRotation()
-    {
-        oldRotation = transform.rotation.eulerAngles;
-        Debug.Log("Old rotation:" + oldRotation);
-    }
+    */
 }
