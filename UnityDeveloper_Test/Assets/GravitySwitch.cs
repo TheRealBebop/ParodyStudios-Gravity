@@ -74,8 +74,16 @@ public class GravitySwitch : MonoBehaviour
         if(enter == 1 && (switchLeft == 1 || switchRight == 1 || switchForward == 1 || switchBack == 1))
         {
             Debug.Log("ExactRotation:" + exactRotation);
-            PlayerLerp(exactRotation);
-            PlayerFlyUp(exactRotation);
+            if(switchLeft == 1)
+                RotateToNearest90(-transform.right);
+            if(switchRight == 1)
+                RotateToNearest90(transform.right);
+            if (switchForward == 1)
+                RotateToNearest90(transform.forward);
+            if (switchBack == 1)
+                RotateToNearest90(-transform.forward);
+            //PlayerLerp(exactRotation);
+            //PlayerFlyUp(exactRotation);
         }
 
         //enter = 0;
@@ -115,9 +123,81 @@ public class GravitySwitch : MonoBehaviour
         }
     }
 
+    public void RotateToNearest90(Vector3 snap)
+    {
+        Vector3 localDirection = snap;
+        Vector3 dir = snap;
+        Quaternion targetRotation = Quaternion.LookRotation(localDirection, transform.up);
+        transform.rotation = targetRotation;
+
+        Vector3 currentRotation = transform.eulerAngles;
+        float newYRotation = Mathf.Round(currentRotation.y / 90.0f) * 90.0f;
+        transform.eulerAngles = new Vector3(currentRotation.x, newYRotation, currentRotation.z);
+
+        enter = 0;
+        switchLeft = 0;
+        switchRight = 0;
+        switchForward = 0;
+        switchBack = 0;
+        //Vector3 localLeftDirection = -transform.right; // The local left direction of the object
+        /*
+        // Calculate the rotations to global directions
+        Quaternion toForward = Quaternion.FromToRotation(dir, Vector3.forward);
+        Quaternion toBack = Quaternion.FromToRotation(dir, Vector3.back);
+        Quaternion toRight = Quaternion.FromToRotation(dir, Vector3.right);
+        Quaternion toLeft = Quaternion.FromToRotation(dir, Vector3.left);
+        // Determine the closest global direction
+        targetRotation = Quaternion.identity;
+        float minimumAngle = float.MaxValue;
+
+        float angleForward = Quaternion.Angle(transform.rotation, toForward);
+        if (angleForward < minimumAngle)
+        {
+            minimumAngle = angleForward;
+            Debug.Log("Min angle:" + minimumAngle);
+            targetRotation = toForward;
+        }
+
+        float angleBack = Quaternion.Angle(transform.rotation, toBack);
+        if (angleBack < minimumAngle)
+        {
+            minimumAngle = angleBack;
+            Debug.Log("Min angle:" + minimumAngle);
+            targetRotation = toBack;
+        }
+
+        float angleRight = Quaternion.Angle(transform.rotation, toRight);
+        if (angleRight < minimumAngle)
+        {
+            minimumAngle = angleRight;
+            Debug.Log("Min angle:" + minimumAngle);
+            targetRotation = toRight;
+        }
+
+        float angleLeft = Quaternion.Angle(transform.rotation, toLeft);
+        if (angleLeft < minimumAngle)
+        {
+            Debug.Log("Min angle:" + minimumAngle);
+            targetRotation = toLeft;
+        }
+        // Apply the closest rotation
+        transform.rotation = Quaternion.FromToRotation(dir, Vector3.left);
+
+        /*
+        Vector3 currentRotation = transform.eulerAngles;
+        float newYRotation = Mathf.Round(currentRotation.y / 90.0f) * 90.0f;
+
+        targetRotation = Quaternion.LookRotation(snap);
+        targetRotation.eulerAngles = new Vector3(currentRotation.x, newYRotation, currentRotation.z);
+
+        transform.rotation = targetRotation;
+        */
+    }
     public Quaternion PlayerLerp(Vector3 deg)
     {
         controller.enabled = false;
+        //RotateToNearest90();
+        
         goalRotation = Quaternion.Euler(0, 0, 0) * Quaternion.Euler(deg);
 
         if (transform.rotation != goalRotation)
@@ -137,7 +217,6 @@ public class GravitySwitch : MonoBehaviour
             //Quaternion rotationToZero = Quaternion.Euler(leftGoalRotation);
             Debug.Log("Vector3 Lerp");
         }
-        Debug.Log("deg:" + deg);
 
         if (transform.rotation == goalRotation)
         {
@@ -152,6 +231,9 @@ public class GravitySwitch : MonoBehaviour
 
             enter = 0;
             switchLeft = 0;
+            switchRight = 0;
+            switchForward = 0;
+            switchBack = 0;
 
             leftWallHit = 0;
             rightWallHit = 0;
