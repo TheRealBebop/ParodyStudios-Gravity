@@ -14,12 +14,15 @@ public class CubeTimer : MonoBehaviour
     [SerializeField] TextMeshProUGUI timerText;
     [SerializeField] Canvas congratsCanvas;
     FallDamage kill;
+    PlayerController playa;
     // Start is called before the first frame update
     void Start()
     {
         congratsCanvas.gameObject.SetActive(false);
         playerScore = 0;
         kill = GetComponent<FallDamage>();
+        playa = GetComponent<PlayerController>();
+        Debug.Log("STARTING NOWWW");
     }
 
     // Update is called once per frame
