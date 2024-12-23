@@ -14,48 +14,24 @@ public class GravitySwitch : MonoBehaviour
     [SerializeField] Vector3 goalROTATE;
     [SerializeField] private AnimationCurve curve;
     public float rayRange = 10000000f;
-    Vector3 actualdirection;
 
     public int switchLeft = 0;
     public int switchRight = 0;
     public int switchForward = 0;
     public int switchBack = 0;
 
-    private bool rotating = false;
-
     int enter = 0;
 
     [SerializeField] float speed = 0.1f;
-    float current = 0f, target = 10f;
-
-    int leftWallHit = 0;
-    int rightWallHit = 0;
-    int forwardWallHit = 0;
-    int backWallHit = 0;
-    int groundHit = 0;
-    int ceilingHit = 0;
 
     public PlayerController controller;
-    HoloGravity holo;
-    Rigidbody rb;
-
-    Vector3 flyUp;
-    Quaternion leftGoalRotation;
     Vector3 exactRotation;
-    Vector3 oldRotation;
-    Vector3 newRotation;
-    Vector3 worldRotation;
-    Quaternion goalRotation;
-    bool rotatePlayerAndWorld = false;
 
     void Start()
     {
         controller = GetComponent<PlayerController>();
-        holo = GetComponent<HoloGravity>();
-        rb = GetComponent<Rigidbody>();
         childEnv.parent = null;
         childEnv.transform.rotation = Quaternion.Euler(Vector3.zero);
-        flyUp = new Vector3(transform.position.x, -12.34f, transform.position.z);
     }
 
     void Update()
@@ -144,7 +120,7 @@ public class GravitySwitch : MonoBehaviour
     }
     public void RotateDown()
     {
-            Vector3 rotation = new Vector3(90f, 0f, 0f);
-            transform.Rotate(rotation);
+        Vector3 rotation = new Vector3(90f, 0f, 0f);
+        transform.Rotate(rotation);
     }
 }

@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     FallDamage kill;
     public float movementSpeed = 4f;
     public float smoothTime = 0.1f;
-    public Transform camera;
+    public new Transform camera;
     [SerializeField] Rigidbody rigidBody;
 
     public bool jumping;
@@ -72,6 +72,7 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("Running", false);
 
             velocity.y = Mathf.Sqrt((jumpHeight * 10) * -2 * gravity);
+            Debug.Log("YIPEEEEEE");
         }
         if (velocity.y > -20)
         {
@@ -82,13 +83,13 @@ public class PlayerController : MonoBehaviour
 
     public void IsMoving()
     {
-        if(IsGrounded() == true)
+        if (IsGrounded() == true)
         {
-            if(lastPosition.x != gameObject.transform.position.x)
+            if (lastPosition.x != gameObject.transform.position.x)
             {
                 animator.SetBool("Running", true);
             }
-            else 
+            else
             {
                 animator.SetBool("Running", false);
             }
@@ -115,10 +116,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-            grounded = true;
-            jumping = false;
-            Debug.Log("Landed");
-        if(collision.collider.tag == "Outside")
+        grounded = true;
+        jumping = false;
+        Debug.Log("Landed");
+        if (collision.collider.tag == "Outside")
         {
             Debug.Log("This is Game Over");
             kill.GameOver();
